@@ -1,3 +1,4 @@
+// @dart=2.9
 import 'package:mobx/mobx.dart';
 part 'item_model.g.dart';
 

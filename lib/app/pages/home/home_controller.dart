@@ -1,46 +1,59 @@
-import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mobx_cart_list/app/models/item_model.dart';
+import 'package:rxdart/rxdart.dart';
 part 'home_controller.g.dart';
 
 class HomeController = _HomeControllerBase with _$HomeController;
 
 abstract class _HomeControllerBase with Store {
-  
-  @observable
-  ObservableList<ItemModel> listItems = [
-    ItemModel(title: "Item 1", check: true),
-    ItemModel(title: "Item 2", check: false),
-    ItemModel(title: "Item 3", check: true),
-  ].asObservable();
+  final listItems = BehaviorSubject<List<ItemModel>>.seeded([]);
+  final filter = BehaviorSubject<String>.seeded('');
 
-  @computed
-  int get totalChecked => listItems.where((item) => item.check).length;
+  late ObservableStream<List<ItemModel>> output;
 
-
-  @computed
-  ObservableList<ItemModel> get listFiltered {
-    if (filter.isEmpty) {
-      return listItems;
-    } else {
-      // return listItems.where((element) => false)
-    }
+  _HomeControllerBase() {
+    output = Rx.combineLatest2<List<ItemModel>, String, List<ItemModel>>(
+    listItems.stream, filter.stream, (list, filter) {
+        if (filter.isEmpty) {
+          return list;
+        } else {
+          return list.where((item) => item.title.toLowerCase().contains(filter.toLowerCase())).toList();
+        }
+    }).asObservable(initialValue: []);
   }
 
-  @observable
-  String filter = '';
-
   @action
-  setFilter(String value) => filter = value;
+  setFilter(String value) => filter.add(value);
 
   @action
   addItem(ItemModel model) {
-    listItems.add(model);
+    listItems.add(List<ItemModel>.from(listItems.value..add(model)));
   }
 
   @action
   removeItem(ItemModel model) {
-    listItems.remove(model);
+    listItems.add(List<ItemModel>.from(listItems.value..remove(model)));
   }
 
+  // @observable
+  // ObservableList<ItemModel> listItems = [
+  //   ItemModel(title: "Item 1", check: true),
+  //   ItemModel(title: "Item 2", check: false),
+  //   ItemModel(title: "Item 3", check: true),
+  // ].asObservable();
+
+  // @computed
+  // int get totalChecked => output.data.where((item) => item.check);
+
+  // @computed
+  // List<ItemModel> get listFiltered {
+  //   if (filter.isEmpty) {
+  //     return listItems;
+  //   } else {
+  //     return listItems.where((item) => item.title.toLowerCase().contains(filter.toLowerCase())).toList();
+  //   }
+  // }
+
+  // @observable
+  // String filter = '';
 }

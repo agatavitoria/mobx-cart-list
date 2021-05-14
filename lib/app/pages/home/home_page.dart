@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx_cart_list/app/models/item_model.dart';
 import 'package:mobx_cart_list/app/pages/home/home_controller.dart';
-
 import 'components/item_widget.dart';
 
 class HomePage extends StatefulWidget {
@@ -51,25 +50,22 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: TextField(
+          onChanged: controller.setFilter,
           decoration: InputDecoration(
             hintText: 'Pesquisa...',
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Observer(
-              builder: (_) {
-                return Text("${controller.totalChecked}");
-              },
-            ),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Observer(
         builder: (_) {
+          if (controller.output.data == null) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
           return ListView(
-            children: controller.listItems.map<Widget>((item) {
+            children: controller.output.data.map<Widget>((item) {
               return ItemWidget(
                 item: item,
                 removeClicked: () {
